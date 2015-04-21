@@ -3,7 +3,7 @@
 #include <string.h>
 #include "random.h"
 
-#define SIMNUM 1e6
+#define SIMNUM 10e6
 #define LAZYSIZE 5000
 
 int *vector;
@@ -79,6 +79,8 @@ int main(int argc, char **argv){
 	int swap;
 	int rndpos;
 	double m1, m2, m3;
+	double o1, o2, o3;
+	int bin;
 
 	if(argc < 2){
 		fprintf(stderr, "Not enough parameter\n");
@@ -88,12 +90,33 @@ int main(int argc, char **argv){
 
 	initrnd();
 	copy2vec();
+
+	o1 = mean(0, count);
+	o2 = mean(count, count * 2);
+	o3 = mean(count * 2, count * 3);
+
 	for(i = 0; i < SIMNUM; i++){
 		m1 = mean(0, count);
 		m2 = mean(count, count * 2);
 		m3 = mean(count * 2, count * 3);
-		printf("%f\t%f\t%f\n", m1, m2, m3);
 
+		/* Honestly, I can not understand the logic behind this */
+		bin = 0;
+		if((m1 > o1 - 1.0 && m1 < o1 + 1.0) || (m1 > o2 - 1.0 && m1 < o2 + 1.0) || (m1 > o3 - 1.0 && m1 < o3 + 1.0)){
+			bin++;
+		}
+		if((m2 > o1 - 1.0 && m2 < o1 + 1.0) || (m2 > o2 - 1.0 && m2 < o2 + 1.0) || (m2 > o3 - 1.0 && m2 < o3 + 1.0)){
+			bin++;
+		}
+		if((m3 > o1 - 1.0 && m3 < o1 + 1.0) || (m3 > o2 - 1.0 && m3 < o2 + 1.0) || (m3 > o3 - 1.0 && m3 < o3 + 1.0)){
+			bin++;
+		}
+
+		if(bin > 0){
+			printf("%f\t%f\t%f\t%d\n", m1, m2, m3, bin);
+		}
+
+		/* Knuth shuffle */
 		for(j = 0; j < count * 3; j++){
 			rndpos           = getint(j, (count * 3)-1);
 			swap             = shuffled[j];
