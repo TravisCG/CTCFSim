@@ -79,7 +79,7 @@ int main(int argc, char **argv){
 	int swap;
 	int rndpos;
 	double m1, m2, m3;
-	double o1, o2, o3;
+	double o1, o2, o3, threshold1, threshold2, threshold3;
 	int bin;
 
 	if(argc < 2){
@@ -95,12 +95,19 @@ int main(int argc, char **argv){
 	o2 = mean(count, count * 2);
 	o3 = mean(count * 2, count * 3);
 
+	threshold1 = o2 - o1;
+	threshold2 = o3 - o1;
+	threshold3 = o3 - o2;
+
 	for(i = 0; i < SIMNUM; i++){
 		m1 = mean(0, count);
 		m2 = mean(count, count * 2);
 		m3 = mean(count * 2, count * 3);
 
-		/* Honestly, I can not understand the logic behind this */
+		if( (m2 - m1 > threshold1) && (m3 - m1 > threshold2)){
+			printf("%f\t%f\t%f\n", m1, m2, m3);
+		}
+		/* Honestly, I can not understand the logic behind this *
 		bin = 0;
 		if((m1 > o1 - 1.0 && m1 < o1 + 1.0) || (m1 > o2 - 1.0 && m1 < o2 + 1.0) || (m1 > o3 - 1.0 && m1 < o3 + 1.0)){
 			bin++;
@@ -115,7 +122,7 @@ int main(int argc, char **argv){
 		if(bin > 0){
 			printf("%f\t%f\t%f\t%d\n", m1, m2, m3, bin);
 		}
-
+		*/
 		/* Knuth shuffle */
 		for(j = 0; j < count * 3; j++){
 			rndpos           = getint(j, (count * 3)-1);
