@@ -3,7 +3,7 @@
 #include <string.h>
 #include "random.h"
 
-#define SIMNUM 10e6
+#define SIMNUM 100e6
 #define LAZYSIZE 5000
 
 int *vector;
@@ -104,7 +104,7 @@ int main(int argc, char **argv){
 		m2 = mean(count, count * 2);
 		m3 = mean(count * 2, count * 3);
 
-		if( (m2 - m1 > threshold1) && (m3 - m1 > threshold2)){
+		if( (m2 - m1 >= threshold1) && (m3 - m1 >= threshold2)){
 			printf("%f\t%f\t%f\n", m1, m2, m3);
 		}
 		/* Honestly, I can not understand the logic behind this *
