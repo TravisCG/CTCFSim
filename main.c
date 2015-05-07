@@ -24,7 +24,6 @@ void readtable(char *filename){
 	size_t linelen = 0;
 	ssize_t readed;
 	int *ctcf, *rad21, *smc3;
-	int i;
 
 	ctcf  = malloc(sizeof(int) * LAZYSIZE);
 	rad21 = malloc(sizeof(int) * LAZYSIZE);
@@ -73,14 +72,28 @@ double mean(int start, int end){
 	return(sum / (double)(end - start));
 }
 
+void howmany(double th1, double th2, double th3){
+	int i;
+	int found = 0;
+
+	for(i = 0; i < count; i++){
+		if( (shuffled[i + count]     - shuffled[i]         >= th1) && 
+		    (shuffled[i + count * 2] - shuffled[i]         >= th2) &&
+		    (shuffled[i + count * 2] - shuffled[i + count] >= th3)){
+			found++;
+		}
+	}
+	fprintf(stderr, "%d\n", found);
+}
+
 int main(int argc, char **argv){
 	long i;
 	int j;
 	int swap;
-	int rndpos;
+	int rndpos1, rndpos2;
 	double m1, m2, m3;
 	double o1, o2, o3, threshold1, threshold2, threshold3;
-	int bin;
+	int found = 0;
 
 	if(argc < 2){
 		fprintf(stderr, "Not enough parameter\n");
@@ -104,33 +117,20 @@ int main(int argc, char **argv){
 		m2 = mean(count, count * 2);
 		m3 = mean(count * 2, count * 3);
 
-		if( (m2 - m1 >= threshold1) && (m3 - m1 >= threshold2)){
-			printf("%f\t%f\t%f\n", m1, m2, m3);
-		}
-		/* Honestly, I can not understand the logic behind this *
-		bin = 0;
-		if((m1 > o1 - 1.0 && m1 < o1 + 1.0) || (m1 > o2 - 1.0 && m1 < o2 + 1.0) || (m1 > o3 - 1.0 && m1 < o3 + 1.0)){
-			bin++;
-		}
-		if((m2 > o1 - 1.0 && m2 < o1 + 1.0) || (m2 > o2 - 1.0 && m2 < o2 + 1.0) || (m2 > o3 - 1.0 && m2 < o3 + 1.0)){
-			bin++;
-		}
-		if((m3 > o1 - 1.0 && m3 < o1 + 1.0) || (m3 > o2 - 1.0 && m3 < o2 + 1.0) || (m3 > o3 - 1.0 && m3 < o3 + 1.0)){
-			bin++;
+		if( (m2 - m1 >= threshold1) && (m3 - m1 >= threshold2) && (m3 - m2 >= threshold3)){
+			found++;
 		}
 
-		if(bin > 0){
-			printf("%f\t%f\t%f\t%d\n", m1, m2, m3, bin);
-		}
-		*/
-		/* Knuth shuffle */
-		for(j = 0; j < count * 3; j++){
-			rndpos           = getint(j, (count * 3)-1);
-			swap             = shuffled[j];
-			shuffled[j]      = shuffled[rndpos];
-			shuffled[rndpos] = swap;
-		}
+		howmany(threshold1, threshold2, threshold3);
 
+		/* Modified Knuth shuffle */
+		for(j = 0; j < count; j++){
+			rndpos1               = getint(0, 2);
+			rndpos2               = getint(0, 2);
+			swap                  = shuffled[j * rndpos1];
+			shuffled[j * rndpos1] = shuffled[j * rndpos2];
+			shuffled[j * rndpos2] = swap;
+		}
 	}
 
 	free(vector);
