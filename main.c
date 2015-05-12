@@ -90,7 +90,7 @@ int main(int argc, char **argv){
 	long i;
 	int j;
 	int swap;
-	int rndpos1, rndpos2;
+	int rndpos;
 	double m1, m2, m3;
 	double o1, o2, o3, threshold1, threshold2, threshold3;
 	int found = 0;
@@ -125,15 +125,24 @@ int main(int argc, char **argv){
 
 		/* Modified Knuth shuffle */
 		for(j = 0; j < count; j++){
-			rndpos1               = getint(0, 2);
-			rndpos2               = getint(0, 2);
-			swap                  = shuffled[j * rndpos1];
-			shuffled[j * rndpos1] = shuffled[j * rndpos2];
-			shuffled[j * rndpos2] = swap;
+			rndpos                  = getint(j, count - 1);
+			swap                    = shuffled[j];
+			shuffled[j]             = shuffled[rndpos];
+			shuffled[rndpos]        = swap;
+
+			rndpos                  = getint(count, count * 2 - 1);
+			swap                    = shuffled[count * 2 + j];
+			shuffled[count * 2 + j] = shuffled[rndpos];
+			shuffled[rndpos]        = swap;
+
+			rndpos                  = getint(count * 2, count * 3 - 1);
+			swap                    = shuffled[count * 3 + j];
+			shuffled[count * 3 + j] = shuffled[rndpos];
+			shuffled[rndpos]        = swap;
 		}
 	}
 
-	printf("$d\n", found);
+	printf("%d\n", found);
 
 	free(vector);
 	free(shuffled);
