@@ -133,6 +133,8 @@ int main(int argc, char **argv){
 		}
 	}
 
+	printf("$d\n", found);
+
 	free(vector);
 	free(shuffled);
 	return(EXIT_SUCCESS);
