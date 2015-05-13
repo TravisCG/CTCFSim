@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "random.h"
 
 #define SIMNUM 100e6
@@ -72,14 +73,56 @@ double mean(int start, int end){
 	return(sum / (double)(end - start));
 }
 
+double sd(int start, int end, double mean){
+	int i;
+	double sum = 0.0;
+
+	for(i = start; i < end; i++){
+		sum += (shuffled[i] - mean) * (shuffled[i] - mean);
+	}
+
+	return(sqrt(sum / (double)(end - start - 1)));
+}
+
+void threscalc(double *th1, double *th2, double *th3){
+	int i;
+
+	double m1 = 0.0, m2 = 0.0, m3 = 0.0, diff, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;
+
+	for(i = 0; i < count; i++){
+		m1 += shuffled[i + count] - shuffled[i];
+		m2 += shuffled[i + count * 2] - shuffled[i];
+		m3 += shuffled[i + count * 2] - shuffled[i + count];
+	}
+
+	m1 = m1 / (double)count;
+	m2 = m2 / (double)count;
+	m3 = m3 / (double)count;
+
+	for(i = 0; i < count; i++){
+		diff = shuffled[i + count] - shuffled[i];
+		sum1 += (diff - m1) * (diff - m1);
+
+		diff = shuffled[i + count * 2] - shuffled[i];
+		sum2 += (diff - m2) * (diff - m2);
+
+		diff = shuffled[i + count * 2] - shuffled[i + count];
+		sum3 += (diff - m3) * (diff - m3);
+	}
+
+	*th1 = sqrt( sum1 / (double)(count - 1));
+	*th2 = sqrt( sum2 / (double)(count - 1));
+	*th3 = sqrt( sum3 / (double)(count - 2));
+}
+
 void howmany(double th1, double th2, double th3){
 	int i;
 	int found = 0;
 
 	for(i = 0; i < count; i++){
-		if( (shuffled[i + count]     - shuffled[i]         >= th1) && 
-		    (shuffled[i + count * 2] - shuffled[i]         >= th2) &&
-		    (shuffled[i + count * 2] - shuffled[i + count] >= th3)){
+		if( (shuffled[i + count]     - shuffled[i]         <= th1) && 
+		    (shuffled[i + count * 2] - shuffled[i]         <= th2) &&
+		    (shuffled[i + count * 2] - shuffled[i + count] <= th3)){
 			found++;
 		}
 	}
@@ -91,9 +134,7 @@ int main(int argc, char **argv){
 	int j;
 	int swap;
 	int rndpos;
-	double m1, m2, m3;
-	double o1, o2, o3, threshold1, threshold2, threshold3;
-	int found = 0;
+	double threshold1, threshold2, threshold3;
 
 	if(argc < 2){
 		fprintf(stderr, "Not enough parameter\n");
@@ -104,26 +145,12 @@ int main(int argc, char **argv){
 	initrnd();
 	copy2vec();
 
-	o1 = mean(0, count);
-	o2 = mean(count, count * 2);
-	o3 = mean(count * 2, count * 3);
-
-	threshold1 = o2 - o1;
-	threshold2 = o3 - o1;
-	threshold3 = o3 - o2;
+	threscalc(&threshold1, &threshold2, &threshold3);
 
 	for(i = 0; i < SIMNUM; i++){
-		m1 = mean(0, count);
-		m2 = mean(count, count * 2);
-		m3 = mean(count * 2, count * 3);
-
-		if( (m2 - m1 >= threshold1) && (m3 - m1 >= threshold2) && (m3 - m2 >= threshold3)){
-			found++;
-		}
-
 		howmany(threshold1, threshold2, threshold3);
 
-		/* Modified Knuth shuffle */
+		/* Knuth shuffle in three groups */
 		for(j = 0; j < count; j++){
 			rndpos                  = getint(j, count - 1);
 			swap                    = shuffled[j];
@@ -131,18 +158,16 @@ int main(int argc, char **argv){
 			shuffled[rndpos]        = swap;
 
 			rndpos                  = getint(count, count * 2 - 1);
-			swap                    = shuffled[count * 2 + j];
-			shuffled[count * 2 + j] = shuffled[rndpos];
+			swap                    = shuffled[count + j];
+			shuffled[count + j]     = shuffled[rndpos];
 			shuffled[rndpos]        = swap;
 
 			rndpos                  = getint(count * 2, count * 3 - 1);
-			swap                    = shuffled[count * 3 + j];
-			shuffled[count * 3 + j] = shuffled[rndpos];
+			swap                    = shuffled[count * 2 + j];
+			shuffled[count * 2 + j] = shuffled[rndpos];
 			shuffled[rndpos]        = swap;
 		}
 	}
-
-	printf("%d\n", found);
 
 	free(vector);
 	free(shuffled);
