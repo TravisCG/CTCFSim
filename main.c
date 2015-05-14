@@ -3,7 +3,7 @@
 #include <string.h>
 #include "random.h"
 
-#define SIMNUM 10e6
+#define SIMNUM 100e6
 #define LAZYSIZE 5000
 
 int *vector;
@@ -80,6 +80,7 @@ int main(int argc, char **argv){
 	int rndpos;
 	double m1, m2, m3;
 	double o1, o2, o3;
+	double limit;
 	int bin;
 
 	if(argc < 2){
@@ -87,7 +88,7 @@ int main(int argc, char **argv){
 		return(2);
 	}
 	readtable(argv[1]);
-
+	limit = atof(argv[2]);
 	initrnd();
 	copy2vec();
 
@@ -102,13 +103,13 @@ int main(int argc, char **argv){
 
 		/* Honestly, I can not understand the logic behind this */
 		bin = 0;
-		if((m1 > o1 - 1.0 && m1 < o1 + 1.0) || (m1 > o2 - 1.0 && m1 < o2 + 1.0) || (m1 > o3 - 1.0 && m1 < o3 + 1.0)){
+		if((m1 > o1 - limit && m1 < o1 + limit) || (m1 > o2 - limit && m1 < o2 + limit) || (m1 > o3 - limit && m1 < o3 + limit)){
 			bin++;
 		}
-		if((m2 > o1 - 1.0 && m2 < o1 + 1.0) || (m2 > o2 - 1.0 && m2 < o2 + 1.0) || (m2 > o3 - 1.0 && m2 < o3 + 1.0)){
+		if((m2 > o1 - limit && m2 < o1 + limit) || (m2 > o2 - limit && m2 < o2 + limit) || (m2 > o3 - limit && m2 < o3 + limit)){
 			bin++;
 		}
-		if((m3 > o1 - 1.0 && m3 < o1 + 1.0) || (m3 > o2 - 1.0 && m3 < o2 + 1.0) || (m3 > o3 - 1.0 && m3 < o3 + 1.0)){
+		if((m3 > o1 - limit && m3 < o1 + limit) || (m3 > o2 - limit && m3 < o2 + limit) || (m3 > o3 - limit && m3 < o3 + limit)){
 			bin++;
 		}
 
