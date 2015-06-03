@@ -4,7 +4,7 @@
 #include <math.h>
 #include "random.h"
 
-#define SIMNUM 100e6
+#define SIMNUM 10
 #define LAZYSIZE 5000
 
 int *vector;
@@ -129,6 +129,13 @@ void howmany(double th1, double th2, double th3){
 	fprintf(stderr, "%d\n", found);
 }
 
+void hist(int cycle){
+	int i;
+	for(i = 0; i < count; i++){
+		printf("%d\t%d\t%d\t%d\n", cycle, shuffled[i] - shuffled[count + i], shuffled[i] - shuffled[count * 2 + i], shuffled[count + i] - shuffled[count * 2 + i]);
+	}
+}
+
 int main(int argc, char **argv){
 	long i;
 	int j;
@@ -146,10 +153,10 @@ int main(int argc, char **argv){
 	copy2vec();
 
 	threscalc(&threshold1, &threshold2, &threshold3);
-
+	printf("cycle\tdiff1\tdiff2\tdiff3\n");
 	for(i = 0; i < SIMNUM; i++){
-		howmany(threshold1, threshold2, threshold3);
-
+		//howmany(threshold1, threshold2, threshold3);
+		hist(i);
 		/* Knuth shuffle in three groups */
 		for(j = 0; j < count; j++){
 			rndpos                  = getint(j, count - 1);
