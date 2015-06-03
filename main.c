@@ -4,7 +4,7 @@
 #include <math.h>
 #include "random.h"
 
-#define SIMNUM 10
+#define SIMNUM 100e6
 #define LAZYSIZE 5000
 
 int *vector;
@@ -31,7 +31,7 @@ void readtable(char *filename){
 	smc3  = malloc(sizeof(int) * LAZYSIZE);
 
 	csv = fopen(filename, "r");
-	getline(&line, &linelen, csv); /* read header */
+	readed = getline(&line, &linelen, csv); /* read header */
 	count = 0;
 	while( (readed = getline(&line, &linelen, csv)) != -1){
 		strtok(line, "\t");
@@ -62,78 +62,42 @@ void readtable(char *filename){
 	free(smc3);
 }
 
-double mean(int start, int end){
+void mean(double *first, double *second, double *third){
 	int i;
-	double sum = 0.0;
-
-	for(i = start; i < end; i++){
-		sum += shuffled[i];
-	}
-
-	return(sum / (double)(end - start));
-}
-
-double sd(int start, int end, double mean){
-	int i;
-	double sum = 0.0;
-
-	for(i = start; i < end; i++){
-		sum += (shuffled[i] - mean) * (shuffled[i] - mean);
-	}
-
-	return(sqrt(sum / (double)(end - start - 1)));
-}
-
-void threscalc(double *th1, double *th2, double *th3){
-	int i;
-
-	double m1 = 0.0, m2 = 0.0, m3 = 0.0, diff, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;
+	double s1 = 0.0, s2 = 0.0, s3 = 0.0;
 
 	for(i = 0; i < count; i++){
-		m1 += shuffled[i + count] - shuffled[i];
-		m2 += shuffled[i + count * 2] - shuffled[i];
-		m3 += shuffled[i + count * 2] - shuffled[i + count];
+		s1 += shuffled[i] - shuffled[i + count];             /*CTCF - Rad21*/
+		s2 += shuffled[i] - shuffled[i + 2 * count];         /*CTCF - Smc3 */
+		s3 += shuffled[i + count] - shuffled[i + 2 * count]; /*Rad21 - Smc3*/
 	}
 
-	m1 = m1 / (double)count;
-	m2 = m2 / (double)count;
-	m3 = m3 / (double)count;
-
-	for(i = 0; i < count; i++){
-		diff = shuffled[i + count] - shuffled[i];
-		sum1 += (diff - m1) * (diff - m1);
-
-		diff = shuffled[i + count * 2] - shuffled[i];
-		sum2 += (diff - m2) * (diff - m2);
-
-		diff = shuffled[i + count * 2] - shuffled[i + count];
-		sum3 += (diff - m3) * (diff - m3);
-	}
-
-	*th1 = sqrt( sum1 / (double)(count - 1));
-	*th2 = sqrt( sum2 / (double)(count - 1));
-	*th3 = sqrt( sum3 / (double)(count - 2));
+	*first  = s1 / (double)count;
+	*second = s2 / (double)count;
+	*third  = s3 / (double)count;
 }
 
-void howmany(double th1, double th2, double th3){
+void sd(double *first, double *second, double *third){
 	int i;
-	int found = 0;
+	double d1, d2, d3;
+	double mean1, mean2, mean3;
+	double s1 = 0.0, s2 = 0.0, s3 = 0.0;
+
+	mean(&mean1, &mean2, &mean3);
 
 	for(i = 0; i < count; i++){
-		if( (shuffled[i + count]     - shuffled[i]         <= th1) && 
-		    (shuffled[i + count * 2] - shuffled[i]         <= th2) &&
-		    (shuffled[i + count * 2] - shuffled[i + count] <= th3)){
-			found++;
-		}
-	}
-	fprintf(stderr, "%d\n", found);
-}
+		d1 = shuffled[i] - shuffled[i + count];
+		d2 = shuffled[i] - shuffled[i + 2 * count];
+		d3 = shuffled[i + count] - shuffled[i + 2 * count];
 
-void hist(int cycle){
-	int i;
-	for(i = 0; i < count; i++){
-		printf("%d\t%d\t%d\t%d\n", cycle, shuffled[i] - shuffled[count + i], shuffled[i] - shuffled[count * 2 + i], shuffled[count + i] - shuffled[count * 2 + i]);
+		s1 += (d1 - mean1) * (d1 - mean1);
+		s2 += (d2 - mean2) * (d2 - mean2);
+		s3 += (d3 - mean3) * (d3 - mean3);
 	}
+
+	*first  = sqrt(s1 / (double)(count - 1));
+	*second = sqrt(s2 / (double)(count - 1));
+	*third  = sqrt(s3 / (double)(count - 1));
 }
 
 int main(int argc, char **argv){
@@ -142,6 +106,7 @@ int main(int argc, char **argv){
 	int swap;
 	int rndpos;
 	double threshold1, threshold2, threshold3;
+	double sd1, sd2, sd3;
 
 	if(argc < 2){
 		fprintf(stderr, "Not enough parameter\n");
@@ -152,11 +117,15 @@ int main(int argc, char **argv){
 	initrnd();
 	copy2vec();
 
-	threscalc(&threshold1, &threshold2, &threshold3);
+	sd(&threshold1, &threshold2, &threshold3);
 	printf("cycle\tdiff1\tdiff2\tdiff3\n");
 	for(i = 0; i < SIMNUM; i++){
-		//howmany(threshold1, threshold2, threshold3);
-		hist(i);
+		sd(&sd1, &sd2, &sd3);
+
+		if(sd1 <= threshold1 && sd2 <= threshold2 && sd3 <= threshold3){
+			printf("%f\t%f\t%f\n", sd1, sd2, sd3);
+		}
+
 		/* Knuth shuffle in three groups */
 		for(j = 0; j < count; j++){
 			rndpos                  = getint(j, count - 1);
@@ -174,6 +143,7 @@ int main(int argc, char **argv){
 			shuffled[count * 2 + j] = shuffled[rndpos];
 			shuffled[rndpos]        = swap;
 		}
+		
 	}
 
 	free(vector);
