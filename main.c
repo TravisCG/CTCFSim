@@ -118,12 +118,15 @@ int main(int argc, char **argv){
 	copy2vec();
 
 	sd(&threshold1, &threshold2, &threshold3);
-	printf("cycle\tdiff1\tdiff2\tdiff3\n");
+	printf("cycle\tdiff1\tdiff2\tdiff3\tviolate\n");
 	for(i = 0; i < SIMNUM; i++){
 		sd(&sd1, &sd2, &sd3);
 
 		if(sd1 <= threshold1 && sd2 <= threshold2 && sd3 <= threshold3){
-			printf("%f\t%f\t%f\n", sd1, sd2, sd3);
+			printf("%ld\t%f\t%f\t%f\t1\n", i, sd1, sd2, sd3);
+		}
+		else{
+			printf("%ld\t%f\t%f\t%f\t0\n", i, sd1, sd2, sd3);
 		}
 
 		/* Knuth shuffle in three groups */
