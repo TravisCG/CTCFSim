@@ -23,6 +23,7 @@ void copy2vec(){
 void readtable(char *filename){
 	FILE *csv;
 	char *line = NULL;
+	char *dummy;
 	size_t linelen = 0;
 	ssize_t readed;
 	int *ctcf, *rad21, *smc3;
@@ -37,9 +38,29 @@ void readtable(char *filename){
 	while( (readed = getline(&line, &linelen, csv)) != -1){
 		strtok(line, "\t");
 
-		ctcf[count]  = atoi(strtok(NULL, "\t"));
-		rad21[count] = atoi(strtok(NULL, "\t"));
-		smc3[count]  = atoi(strtok(NULL, "\n"));
+		dummy = strtok(NULL, "\t");
+		if(dummy != NULL){
+			ctcf[count]  = atoi(dummy);
+		}
+		else{
+			ctcf[count] = 0;
+		}
+
+		dummy = strtok(NULL, "\t");
+		if(dummy != NULL){
+			rad21[count] = atoi(dummy);
+		}
+		else{
+			rad21[count] = 0;
+		}
+
+		dummy = strtok(NULL, "\t");
+		if(dummy != NULL){
+			smc3[count]  = atoi(dummy);
+		}
+		else{
+			smc3[count] = 0;
+		}
 		count++;
 
 		if(count % LAZYSIZE == 0){
